@@ -1,8 +1,12 @@
-
+"""
+This file contains the basic body classes.
+"""
 from dataclasses import dataclass, field
 from typing import Optional, Union
 
 import numpy as np
+
+from .bodies import Body
 
 
 @dataclass
@@ -16,3 +20,7 @@ class Joint:
         
     """
     name: str
+    body_i: Body
+    point_i: str
+    body_j: Body
+    point_j: str
