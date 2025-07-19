@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from hypothesis import given, strategies as st
 
-from pympkins.objects.bodies import Frame, Point, Body
+from pympkins.configuration.bodies import Frame, Point, Body
 
 # ----------
 # Frame tests
