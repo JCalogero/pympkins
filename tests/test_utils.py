@@ -1,6 +1,6 @@
 import pytest
 from hypothesis import given, strategies as st
-from pympkins.pympkins.utils import NameMixin
+from pympkins.utils import NameMixin
 
 
 def test_name_set_once():
