@@ -25,6 +25,15 @@ def test_point_creation_defaults():
     assert p.position.shape == (3,)
 
 
+def test_point_creation_with_custom_frame_and_position():
+    frame = Frame(name="custom_frame", fixed=False)
+    pos = np.array([1.0, 2.0, 3.0])
+    p = Point(name="Pcustom", frame=frame, position=pos)
+    assert p.name == "Pcustom"
+    assert p.frame.name == "custom_frame"
+    assert np.array_equal(p.position, pos)
+
+
 # ----------
 # Body tests
 # ----------
@@ -45,20 +54,6 @@ def test_body_mass_validation():
 def test_body_mmoi_validation():
     with pytest.raises(ValueError):
         Body(name="B", mass=1.0, mmoi=np.ones((2, 2)))
-
-
-def test_body_origin_type_validation():
-    b = Body(name="B", mass=1.0, mmoi=np.eye(3))
-    with pytest.raises(TypeError):
-        b.origin = "not_a_point"
-
-
-def test_body_origin_frame_validation():
-    b = Body(name="B", mass=1.0, mmoi=np.eye(3))
-    wrong_frame = Frame(name="other")
-    p = Point(name="P", frame=wrong_frame)
-    with pytest.raises(ValueError):
-        b.origin = p
 
 
 def test_add_points_type_and_frame_validation():
@@ -89,6 +84,29 @@ def test_add_points_from_dict_type():
     assert any(p.name == "P1" for p in b.points)
     with pytest.raises(TypeError):
         b.add_points_from_dict([("P1", [1, 2, 3])])
+
+
+def test_body_points_origin_is_first():
+    b = Body(name="B", mass=1.0, mmoi=np.eye(3))
+    p1 = Point(name="P1", frame=b.frame)
+    p2 = Point(name="P2", frame=b.frame)
+    b.add_points(p1, p2)
+    points = b.points
+    assert points[0] is b.origin
+    assert [p.name for p in points] == [b.origin.name, "P1", "P2"]
+
+
+def test_body_points_dict_property():
+    b = Body(name="B", mass=1.0, mmoi=np.eye(3))
+    p1 = Point(name="P1", frame=b.frame)
+    p2 = Point(name="P2", frame=b.frame)
+    b.add_points(p1, p2)
+    points_dict = b.points_dict
+    assert isinstance(points_dict, dict)
+    assert set(points_dict.keys()) == {b.origin.name, "P1", "P2"}
+    assert points_dict[b.origin.name] is b.origin
+    assert points_dict["P1"] is p1
+    assert points_dict["P2"] is p2
 
 
 @given(

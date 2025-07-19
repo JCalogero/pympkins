@@ -69,7 +69,9 @@ class Body(NameMixin):
     _points: list[Point] = field(default_factory=list, init=False, repr=False)
 
     def __post_init__(self):
-        self.origin = Point(name=ORIGIN, frame=Frame(name=self.name))
+        # Create a frame for the body and an origin point
+        self._frame = Frame(name=self.name, fixed=False)
+        self._origin = Point(name=ORIGIN, frame=self.frame)
 
     # ----------
     # Properties
@@ -99,23 +101,28 @@ class Body(NameMixin):
         self._mmoi = value
 
     @property
-    def origin(self) -> Point:
-        return self._origin
+    def frame(self) -> Frame:
+        """Returns the frame associated with the body."""
+        return self._frame
 
-    @origin.setter
-    def origin(self, value: Point):
-        if not isinstance(value, Point):
-            raise TypeError("Origin must be an instance of Point.")
-        if value.frame.name != self.name:
-            raise ValueError(f"Origin point must be in the '{self.name}' frame.")
-        self._origin = value
+    @property
+    def origin(self) -> Point:
+        """Returns the origin point of the body."""
+        return self._origin
 
     @property
     def points(self) -> List[Point]:
         """
-        Returns a list of points associated with the body.
+        Returns a list of points associated with the body, starting with the origin point.
         """
         return [self.origin] + self._points
+
+    @property
+    def points_dict(self) -> dict[str, Point]:
+        """
+        Returns a dictionary of points associated with the body, where the keys are point names, and the values are the points themselves.
+        """
+        return {point.name: point for point in self.points}
 
     # ----------
     # Public methods
