@@ -2,7 +2,7 @@
 This file contains the basic body classes.
 """
 from dataclasses import dataclass, field
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import numpy as np
 
@@ -17,7 +17,9 @@ class Frame(NameMixin):
     name: str
     fixed: bool = False
 
+
 inertial_frame = Frame(name="inertial_frame", fixed=True)
+
 
 @dataclass
 class Point(NameMixin):
@@ -61,6 +63,7 @@ class Body(NameMixin):
     # Property attributes
     _mass: float = field(init=False, repr=False)
     _mmoi: np.ndarray = field(init=False, repr=False)
+    _points: list[Point] = field(default_factory=list, init=False, repr=False)
 
     def __post_init__(self):
         self.origin = Point(name=ORIGIN, frame=Frame(name=self.name))
@@ -96,3 +99,46 @@ class Body(NameMixin):
         if value.frame.name != self.name:
             raise ValueError(f"Origin point must be in the '{self.name}' frame.")
         self._origin = value
+
+    @property
+    def points(self) -> List[Point]:
+        """
+        Returns a list of points associated with the body.
+        """
+        return [self.origin] + self._points
+
+    # ----------
+    # Public methods
+    # ----------
+    def add_points(self, *points: Point):
+        """
+        Add points to the body.
+
+        Args:
+            points
+                Points to be added to the body.
+        """
+        # Validate each point
+        for point in points:
+            if not isinstance(point, Point):
+                raise TypeError("All points must be instances of Point.")
+            if point.frame.name != self.name:
+                raise ValueError(f"Point '{point.name}' must be in the '{self.name}' frame.")
+        
+        self._points += points
+    
+    def add_points_from_array(self, points: np.ndarray):
+        """
+        Add points to the body from a numpy array.
+
+        Args:
+            points
+                A 2D numpy array where each row represents a point in the form [x, y, z].
+        """
+        if points.ndim != 2 or points.shape[1] != 4:
+            raise ValueError("Points must be a 2D numpy array with shape (n, 4).")
+        
+        new_points = [
+            Point(name=point[0], frame=self.origin.frame, position=point[1:]) for point in points
+        ]
+        self.add_points(*new_points)
