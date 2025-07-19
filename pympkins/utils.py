@@ -1,12 +1,16 @@
 from dataclasses import dataclass, field
 
+from typing import Optional
+
 
 @dataclass
 class NameMixin:
     """
     A mixin class to handle the name attribute for objects.
     """
-    _name: str = field(default=None, init=False, repr=False)
+
+    name: str
+    _name: Optional[str] = field(default=None, init=False, repr=False)
 
     @property
     def name(self) -> str:
