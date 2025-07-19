@@ -139,12 +139,14 @@ class Body(NameMixin):
         for point in points:
             if not isinstance(point, Point):
                 raise TypeError("All points must be instances of Point.")
-            elif point.frame.name != self.name:
+            elif point.frame != self.frame:
                 raise ValueError(
-                    f"Point '{point.name}' must be in the '{self.name}' frame."
+                    f"Point '{point.name}' must be in the '{self.frame.name}' frame."
                 )
             elif point.name in self.points_dict.keys():
-                raise ValueError(f"Point '{point.name}' already exists in the body.")
+                raise ValueError(
+                    f"Point '{point.name}' already exists in the body `{self.name}`."
+                )
 
         self._points += points
 
@@ -154,13 +156,15 @@ class Body(NameMixin):
 
         Args:
             points
-                A 2D numpy array where each row represents a point in the form [x, y, z].
+                A 2D numpy array where each row represents a point in the form ['name', x, y, z].
         """
         if points.ndim != 2 or points.shape[1] != 4:
-            raise ValueError("Points must be a 2D numpy array with shape (n, 4).")
+            raise ValueError(
+                "Points must be a 2D numpy array with shape (n, 4), where column 0 is the point name."
+            )
 
         new_points = [
-            Point(name=point[0], frame=self.origin.frame, position=point[1:])
+            Point(name=point[0], frame=self.frame, position=point[1:])
             for point in points
         ]
         self.add_points(*new_points)
@@ -177,7 +181,7 @@ class Body(NameMixin):
             raise TypeError("Points must be a dictionary.")
 
         new_points = [
-            Point(name=name, frame=self.origin.frame, position=np.array(position))
+            Point(name=name, frame=self.frame, position=np.array(position))
             for name, position in points.items()
         ]
         self.add_points(*new_points)
