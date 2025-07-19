@@ -93,15 +93,28 @@ def test_add_points_from_dict_type():
 
 @given(
     st.text(min_size=1),
-    st.floats(min_value=1e-6, max_value=1e6),
-    st.lists(st.lists(st.floats(), min_size=3, max_size=3), min_size=3, max_size=3),
+    st.floats(allow_nan=True, allow_infinity=False),
+    st.lists(
+        st.lists(
+            st.floats(allow_nan=True, allow_infinity=False), min_size=3, max_size=3
+        ),
+        min_size=3,
+        max_size=3,
+    ),
 )
 def test_body_hypothesis(name, mass, mmoi_list):
     mmoi = np.array(mmoi_list)
-    if mmoi.shape == (3, 3):
-        b = Body(name=name, mass=mass, mmoi=mmoi)
-        assert b.mass == mass
-        assert np.array_equal(b.mmoi, mmoi)
-    else:
+    # Check for invalid mass
+    if not np.isfinite(mass) or mass <= 0:
         with pytest.raises(ValueError):
             Body(name=name, mass=mass, mmoi=mmoi)
+        return
+    # Check for invalid mmoi (shape or NaN)
+    if mmoi.shape != (3, 3) or np.isnan(mmoi).any() or np.less(mmoi, 0).any():
+        with pytest.raises(ValueError):
+            Body(name=name, mass=mass, mmoi=mmoi)
+        return
+    # Valid case
+    b = Body(name=name, mass=mass, mmoi=mmoi)
+    assert b.mass == mass
+    assert np.array_equal(b.mmoi, mmoi)

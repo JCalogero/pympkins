@@ -80,8 +80,8 @@ class Body(NameMixin):
 
     @mass.setter
     def mass(self, value: float):
-        if value <= 0:
-            raise ValueError("Mass must be a positive value.")
+        if value <= 0 or not np.isfinite(value) or np.isnan(value):
+            raise ValueError("Mass must be a positive, non-NaN, finite value.")
         self._mass = value
 
     @property
@@ -92,6 +92,10 @@ class Body(NameMixin):
     def mmoi(self, value: np.ndarray):
         if value.shape != (3, 3):
             raise ValueError("Moment of inertia matrix must be a 3x3 numpy array.")
+        if np.isnan(value).any() or (value < 0).any():
+            raise ValueError(
+                "Moment of inertia matrix must not contain negative or NaN values."
+            )
         self._mmoi = value
 
     @property
