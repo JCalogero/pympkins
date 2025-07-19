@@ -139,10 +139,12 @@ class Body(NameMixin):
         for point in points:
             if not isinstance(point, Point):
                 raise TypeError("All points must be instances of Point.")
-            if point.frame.name != self.name:
+            elif point.frame.name != self.name:
                 raise ValueError(
                     f"Point '{point.name}' must be in the '{self.name}' frame."
                 )
+            elif point.name in self.points_dict.keys():
+                raise ValueError(f"Point '{point.name}' already exists in the body.")
 
         self._points += points
 

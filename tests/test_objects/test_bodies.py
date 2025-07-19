@@ -109,6 +109,15 @@ def test_body_points_dict_property():
     assert points_dict["P2"] is p2
 
 
+def test_body_duplicate_point_name():
+    b = Body(name="B", mass=1.0, mmoi=np.eye(3))
+    p1 = Point(name="P1", frame=b.frame)
+    b.add_points(p1)
+    p_duplicate = Point(name="P1", frame=b.frame)
+    with pytest.raises(ValueError):
+        b.add_points(p_duplicate)
+
+
 @given(
     st.text(min_size=1),
     st.floats(allow_nan=True, allow_infinity=False),
